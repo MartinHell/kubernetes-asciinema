@@ -1,0 +1,115 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: asciinema-app
+  namespace: asciinema
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: asciinema-app
+    spec:
+      containers:
+        - name: phoenix
+          image: "asciinema/asciinema-server:latest"
+          command: ["mix", "phx.server"]
+          volumeMounts:
+          - name: uploads
+            mountPath: /app/uploads
+          - name: web-tmp
+            mountPath: /tmp
+          envFrom:
+          - configMapRef:
+              name: asciinema
+        - name: rails
+          image: "asciinema/asciinema-server:latest"
+          command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+          volumeMounts:
+          - name: uploads
+            mountPath: /app/uploads
+          - name: web-tmp
+            mountPath: /tmp
+          - name: log
+            mountPath: /app/log
+          - name: rails-tmp
+            mountPath: /app/tmp
+          envFrom:
+          - configMapRef:
+              name: asciinema
+      initContainers:
+        - name: init-smtp
+          image: busybox
+          command: ['sh', '-c', 'echo HELO | nc smtp.asciinema 25']
+        - name: init-redis
+          image: busybox
+          command: ['sh', '-c', 'echo INFO | nc redis.asciinema 6379']
+        - name: init-postgres
+          image: busybox
+          command: ['sh', '-c', 'echo INFO | nc postgres.asciinema 5432']
+        - name: init-phoenix
+          image: "asciinema/asciinema-server:latest"
+          command: ['setup']
+          volumeMounts:
+          - name: uploads
+            mountPath: /app/uploads
+          - name: web-tmp
+            mountPath: /tmp
+          envFrom:
+          - configMapRef:
+              name: asciinema
+      volumes:
+        - name: uploads
+          hostPath:
+            path: /data/asciinema/asciinema-uploads
+        - name: web-tmp
+          hostPath:
+            path: /data/asciinema/asciinema-tmp
+        - name: log
+          hostPath:
+            path: /data/asciinema/asciinema-log
+        - name: rails-tmp
+          hostPath:
+            path: /data/asciinema/asciinema-rails-tmp
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: phoenix
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-app
+  ports:
+  - protocol: TCP
+    port: 4000
+    targetPort: 4000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: phoenix-exqui
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-app
+  ports:
+  - protocol: TCP
+    port: 4040
+    targetPort: 4040
+    nodePort: 30404
+  type: NodePort
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rails
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-app
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000

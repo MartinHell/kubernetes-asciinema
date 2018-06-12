@@ -1,0 +1,56 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: asciinema-frontend
+  namespace: asciinema
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: asciinema-frontend
+    spec:
+      containers:
+        - name: nginx
+          image: "nginx"
+          ports:
+          - containerPort: 80
+            name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d/
+            - name: cache
+              mountPath: /cache
+          envFrom:
+            - configMapRef:
+                name: asciinema
+      initContainers:
+        - name: init-rails
+          image: busybox
+          command: ['sh', '-c', 'nc -vz rails.asciinema 3000']
+        - name: init-phoenix
+          image: busybox
+          command: ['sh', '-c', 'nc -vz phoenix.asciinema 4000']
+      volumes:
+        - name: config
+          configMap:
+            name: asciinema-nginx
+        - name: cache
+          hostPath:
+            path: /data/asciinema/asciinema-nginx
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-frontend
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 80
+    nodePort: 30300
+  type: NodePort

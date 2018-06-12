@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: asciinema
+  namespace: asciinema
+data:
+  URL_SCHEME: 'http'
+  URL_HOST: '10.0.2.51'
+  URL_PORT: '30300'
+  SECRET_KEY_BASE: ''
+  MAILNAME: 'livetwo.ath.cx'
+  GMAIL_USER: ''
+  GMAIL_PASSWORD: ''
+  DISABLE_IPV6: 'true'
+  RELAY_NETWORKS: ':10.0.0.0/8'

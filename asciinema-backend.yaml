@@ -1,0 +1,90 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: asciinema-backend
+  namespace: asciinema
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: asciinema-backend
+    spec:
+      containers:
+        - name: postgres
+          image: "postgres"
+          volumeMounts:
+          - name: postgres-data
+            mountPath: /var/lib/postgresql/data
+          ports:
+          - containerPort: 5432
+            name: postgres
+          envFrom:
+          - configMapRef:
+              name: asciinema
+        - name: redis
+          image: "redis"
+          volumeMounts:
+          - name: redis-data
+            mountPath: /data
+          ports:
+          - containerPort: 6379
+            name: redis
+          envFrom:
+          - configMapRef:
+              name: asciinema
+        - name: smtp
+          image: "namshi/smtp"
+          ports:
+          - containerPort: 25
+            name: smtp
+          envFrom:
+          - configMapRef:
+              name: asciinema
+      volumes:
+        - name: postgres-data
+          hostPath:
+            path: /data/asciinema-postgres
+        - name: redis-data
+          hostPath:
+            path: /data/asciinema-redis
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-backend
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-backend
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: smtp
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-backend
+  ports:
+  - protocol: TCP
+    port: 25
+    targetPort: 25
