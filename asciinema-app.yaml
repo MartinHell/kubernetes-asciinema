@@ -14,18 +14,20 @@ spec:
       containers:
         - name: phoenix
           image: "asciinema/asciinema-server:latest"
-          command: ["mix", "phx.server"]
+          command: ['sh', '-c', '. /meta/env ; mix phx.server']
           volumeMounts:
           - name: uploads
             mountPath: /app/uploads
           - name: web-tmp
             mountPath: /tmp
+          - name: env-dir
+            mountPath: /meta
           envFrom:
           - configMapRef:
               name: asciinema
         - name: rails
           image: "asciinema/asciinema-server:latest"
-          command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+          command: ['sh', '-c', '. /meta/env ; bundle exec unicorn -c config/unicorn.rb']
           volumeMounts:
           - name: uploads
             mountPath: /app/uploads
@@ -35,6 +37,8 @@ spec:
             mountPath: /app/log
           - name: rails-tmp
             mountPath: /app/tmp
+          - name: env-dir
+            mountPath: /meta
           envFrom:
           - configMapRef:
               name: asciinema
@@ -59,6 +63,19 @@ spec:
           envFrom:
           - configMapRef:
               name: asciinema
+        - name: init-phoenix-env
+          image: "asciinema/asciinema-server:latest"
+          command: ['sh', '-c', 'echo export SECRET_KEY_BASE=$(mix phx.gen.secret) > /meta/env']
+          volumeMounts:
+          - name: uploads
+            mountPath: /app/uploads
+          - name: web-tmp
+            mountPath: /tmp
+          - name: env-dir
+            mountPath: /meta
+          envFrom:
+          - configMapRef:
+              name: asciinema
       volumes:
         - name: uploads
           hostPath:
@@ -72,6 +89,8 @@ spec:
         - name: rails-tmp
           hostPath:
             path: /data/asciinema/asciinema-rails-tmp
+        - name: env-dir
+          emptyDir: {}
 ---
 kind: Service
 apiVersion: v1
