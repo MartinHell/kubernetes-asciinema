@@ -8,7 +8,6 @@ data:
   URL_SCHEME: 'http'
   URL_HOST: '10.0.2.51'
   URL_PORT: '30300'
-  SECRET_KEY_BASE: ''
   MAILNAME: 'livetwo.ath.cx'
   GMAIL_USER: ''
   GMAIL_PASSWORD: ''

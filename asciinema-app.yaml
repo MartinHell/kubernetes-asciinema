@@ -13,19 +13,21 @@ spec:
     spec:
       containers:
         - name: phoenix
-          image: "asciinema/asciinema-server:latest"
-          command: ["mix", "phx.server"]
+          image: "asciinema/asciinema-server:develop"
+          command: ['sh', '-c', '. /meta/env && mix phx.server']
           volumeMounts:
           - name: uploads
             mountPath: /app/uploads
           - name: web-tmp
             mountPath: /tmp
+          - name: env-dir
+            mountPath: /meta
           envFrom:
           - configMapRef:
               name: asciinema
         - name: rails
-          image: "asciinema/asciinema-server:latest"
-          command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+          image: "asciinema/asciinema-server:develop"
+          command: ['sh', '-c', '. /meta/env && bundle exec unicorn -c config/unicorn.rb']
           volumeMounts:
           - name: uploads
             mountPath: /app/uploads
@@ -35,6 +37,8 @@ spec:
             mountPath: /app/log
           - name: rails-tmp
             mountPath: /app/tmp
+          - name: env-dir
+            mountPath: /meta
           envFrom:
           - configMapRef:
               name: asciinema
@@ -49,13 +53,26 @@ spec:
           image: busybox
           command: ['sh', '-c', 'echo INFO | nc postgres.asciinema 5432']
         - name: init-phoenix
-          image: "asciinema/asciinema-server:latest"
+          image: "asciinema/asciinema-server:develop"
           command: ['setup']
           volumeMounts:
           - name: uploads
             mountPath: /app/uploads
           - name: web-tmp
             mountPath: /tmp
+          envFrom:
+          - configMapRef:
+              name: asciinema
+        - name: init-phoenix-env
+          image: "asciinema/asciinema-server:develop"
+          command: ['sh', '-c', 'echo export SECRET_KEY_BASE=$(mix phx.gen.secret) > /meta/env']
+          volumeMounts:
+          - name: uploads
+            mountPath: /app/uploads
+          - name: web-tmp
+            mountPath: /tmp
+          - name: env-dir
+            mountPath: /meta
           envFrom:
           - configMapRef:
               name: asciinema
@@ -72,6 +89,8 @@ spec:
         - name: rails-tmp
           hostPath:
             path: /data/asciinema/asciinema-rails-tmp
+        - name: env-dir
+          emptyDir: {}
 ---
 kind: Service
 apiVersion: v1
