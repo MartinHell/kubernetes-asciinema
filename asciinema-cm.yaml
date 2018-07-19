@@ -8,7 +8,7 @@ data:
   URL_SCHEME: 'http'
   URL_HOST: 'asciinema.minikube'
   URL_PORT: '80'
-  MAILNAME: 'hellstrom.it'
+  MAILNAME: 'yourdomain.tld'
   GMAIL_USER: ''
   GMAIL_PASSWORD: ''
   DISABLE_IPV6: 'true'
