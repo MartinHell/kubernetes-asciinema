@@ -1,11 +1,15 @@
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: asciinema-backend
   namespace: asciinema
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: asciinema-backend
+  serviceName: "asciinema-backend"
   template:
     metadata:
       labels:
@@ -44,11 +48,32 @@ spec:
               name: asciinema
       volumes:
         - name: postgres-data
-          hostPath:
-            path: /data/asciinema-postgres
+          persistentVolumeClaim:
+            claimName: postgres-data
+#          hostPath:
+#            mountPath: /data/asciinema-postgres
         - name: redis-data
-          hostPath:
-            path: /data/asciinema-redis
+          persistentVolumeClaim:
+            claimName: redis-data
+#          hostPath:
+#            path: /data/asciinema-redis
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "manual"
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "manual"
+      resources:
+        requests:
+          storage: 1Gi
 ---
 kind: Service
 apiVersion: v1

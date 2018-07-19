@@ -1,11 +1,15 @@
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: asciinema-frontend
   namespace: asciinema
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: asciinema-frontend
+  serviceName: "asciinema-frontend"
   template:
     metadata:
       labels:
@@ -37,8 +41,19 @@ spec:
           configMap:
             name: asciinema-nginx
         - name: cache
-          hostPath:
-            path: /data/asciinema/asciinema-nginx
+          persistentVolumeClaim:
+            claimName: cache
+#          hostPath:
+#            path: /data/asciinema/asciinema-nginx
+  volumeClaimTemplates:
+  - metadata:
+      name: cache
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "manual"
+      resources:
+        requests:
+          storage: 1Gi
 ---
 kind: Service
 apiVersion: v1
@@ -50,7 +65,5 @@ spec:
     app: asciinema-frontend
   ports:
   - protocol: TCP
-    port: 3000
+    port: 80
     targetPort: 80
-    nodePort: 30300
-  type: NodePort

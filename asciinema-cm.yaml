@@ -6,9 +6,9 @@ metadata:
   namespace: asciinema
 data:
   URL_SCHEME: 'http'
-  URL_HOST: '10.0.2.51'
-  URL_PORT: '30300'
-  MAILNAME: 'livetwo.ath.cx'
+  URL_HOST: 'asciinema.minikube'
+  URL_PORT: '80'
+  MAILNAME: 'hellstrom.it'
   GMAIL_USER: ''
   GMAIL_PASSWORD: ''
   DISABLE_IPV6: 'true'
