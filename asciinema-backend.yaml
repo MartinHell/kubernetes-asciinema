@@ -18,6 +18,16 @@ spec:
       containers:
         - name: postgres
           image: "postgres"
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "512Mi"
+              cpu: "0.5"
+          env:
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
           volumeMounts:
           - name: postgres-data
             mountPath: /var/lib/postgresql/data
@@ -29,6 +39,10 @@ spec:
               name: asciinema
         - name: redis
           image: "redis"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "128m"
           volumeMounts:
           - name: redis-data
             mountPath: /data
@@ -39,13 +53,17 @@ spec:
           - configMapRef:
               name: asciinema
         - name: smtp
-          image: "namshi/smtp"
+          image: "martinhell/postfix:0.3"
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "128m"
           ports:
           - containerPort: 25
             name: smtp
           envFrom:
-          - configMapRef:
-              name: asciinema
+#          - configMapRef:
+#              name: asciinema
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
@@ -62,15 +80,15 @@ spec:
       name: postgres-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "manual"
+      storageClassName: "platinum-express-storage"
       resources:
         requests:
-          storage: 1Gi
+          storage: 5Gi
   - metadata:
       name: redis-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "manual"
+      storageClassName: "platinum-express-storage"
       resources:
         requests:
           storage: 1Gi

@@ -5,6 +5,7 @@ metadata:
   name: asciinema-traefik
   annotations:
     traefik.backend.circuitbreaker: "NetworkErrorRatio() > 0.5"
+  namespace: asciinema
 spec:
   ports:
   - name: http
@@ -20,9 +21,10 @@ metadata:
   name: asciinema-ingress
   annotations:
     kubernetes.io/ingress.class: traefik
+  namespace: asciinema
 spec:
   rules:
-  - host: asciinema.minikube
+  - host: asciinema.localhost
     http:
       paths:
       - path: /

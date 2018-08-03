@@ -18,6 +18,10 @@ spec:
       containers:
         - name: phoenix
           image: "asciinema/asciinema-server:develop"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "0.2"
           command: ['sh', '-c', '. /meta/env && mix phx.server']
           volumeMounts:
           - name: uploads
@@ -31,6 +35,10 @@ spec:
               name: asciinema
         - name: rails
           image: "asciinema/asciinema-server:develop"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "0.2"
           command: ['sh', '-c', '. /meta/env && bundle exec unicorn -c config/unicorn.rb']
           volumeMounts:
           - name: uploads
@@ -108,15 +116,15 @@ spec:
       name: uploads
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "manual"
+      storageClassName: "platinum-express-storage"
       resources:
         requests:
-          storage: 1Gi
+          storage: 5Gi
   - metadata:
       name: web-tmp
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "manual"
+      storageClassName: "platinum-express-storage"
       resources:
         requests:
           storage: 1Gi
@@ -124,7 +132,7 @@ spec:
       name: log
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "manual"
+      storageClassName: "platinum-express-storage"
       resources:
         requests:
           storage: 1Gi
@@ -132,7 +140,7 @@ spec:
       name: rails-tmp
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "manual"
+      storageClassName: "platinum-express-storage"
       resources:
         requests:
           storage: 1Gi
@@ -162,8 +170,8 @@ spec:
   - protocol: TCP
     port: 4040
     targetPort: 4040
-    nodePort: 30404
-  type: NodePort
+#    nodePort: 30404
+#  type: NodePort
 ---
 kind: Service
 apiVersion: v1

@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: asciinema-redis
+  namespace: asciinema
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asciinema-redis
+  serviceName: "asciinema-redis"
+  template:
+    metadata:
+      labels:
+        app: asciinema-redis
+    spec:
+      containers:
+        - name: redis
+          image: "redis"
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "0.256"
+            requests:
+              memory: "128Mi"
+              cpu: "0.128"
+          volumeMounts:
+          - name: redis-data
+            mountPath: /data
+          ports:
+          - containerPort: 6379
+            name: redis
+          envFrom:
+          - configMapRef:
+              name: asciinema
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "platinum-express-storage"
+      resources:
+        requests:
+          storage: 1Gi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-redis
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+

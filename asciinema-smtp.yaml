@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: asciinema-smtp
+  namespace: asciinema
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asciinema-smtp
+  serviceName: "asciinema-smtp"
+  template:
+    metadata:
+      labels:
+        app: asciinema-smtp
+    spec:
+      containers:
+        - name: smtp
+          image: "martinhell/postfix:0.4"
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "128m"
+          ports:
+          - containerPort: 25
+            name: smtp
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: smtp
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-smtp
+  ports:
+  - protocol: TCP
+    port: 25
+    targetPort: 25
+

@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: asciinema-postgres
+  namespace: asciinema
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asciinema-postgres
+  serviceName: "asciinema-postgres"
+  template:
+    metadata:
+      labels:
+        app: asciinema-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: "postgres"
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "512Mi"
+              cpu: "0.5"
+          env:
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+          - name: postgres-data
+            mountPath: /var/lib/postgresql/data
+          ports:
+          - containerPort: 5432
+            name: postgres
+          envFrom:
+          - configMapRef:
+              name: asciinema
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "platinum-express-storage"
+      resources:
+        requests:
+          storage: 5Gi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres
+  namespace: asciinema
+spec:
+  selector:
+    app: asciinema-postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+
+
